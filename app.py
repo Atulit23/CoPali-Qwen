@@ -1,10 +1,8 @@
-# main gradio app
 import gradio as gr
 import torch
 from PIL import Image
 from transformers import Qwen2VLForConditionalGeneration, AutoTokenizer, AutoProcessor
 from qwen_vl_utils import process_vision_info
-from byaldi import RAGMultiModalModel
 import re
 
 min_pixels = 256 * 28 * 28
@@ -16,11 +14,10 @@ def model_inference(images):
         trust_remote_code=True,
         torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32
     )
-    processor = AutoProcessor.from_pretrained("Qwen/Qwen2-VL-2B-Instruct", min_pixels=min_pixels,max_pixels=max_pixels)
+    processor = AutoProcessor.from_pretrained("Qwen/Qwen2-VL-2B-Instruct", min_pixels=min_pixels, max_pixels=max_pixels)
 
     images = [{"type": "image", "image": Image.open(image[0])} for image in images]
-    images.append({"type": "text", "text": "Extract the text from the image and retain the language of the text as it is."})
-
+    
     messages = [{"role": "user", "content": images}]
 
     text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
@@ -63,21 +60,23 @@ def search_and_highlight(text, keywords):
 
     return highlighted_text
 
-def process_and_search(images, keywords):
+def extract_and_search(images, keywords):
     extracted_text = model_inference(images)
-    
     highlighted_text = search_and_highlight(extracted_text, keywords)
-    
-    return highlighted_text
+    return extracted_text, highlighted_text
 
 with gr.Blocks(theme=gr.themes.Soft()) as demo:
-    keywords = gr.Textbox(placeholder="Enter keywords to search (comma-separated)", label="Search Keywords")
-    output_gallery = gr.Gallery(label="Image", height=600, show_label=True)
+    with gr.Row():
+        output_gallery = gr.Gallery(label="Image", height=300, show_label=True)
+        keywords = gr.Textbox(placeholder="Enter keywords to search (comma-separated)", label="Search Keywords")
     
-    answer_button = gr.Button("Answer and Search", variant="primary")
-    output = gr.Markdown(label="Output with Highlighted Search Results")
+    extract_button = gr.Button("Extract Text and Search", variant="primary")
+    
+    with gr.Row():
+        raw_output = gr.Textbox(label="Interpreted Text")
+        highlighted_output = gr.Markdown(label="Highlighted Search Results")
 
-    answer_button.click(process_and_search, inputs=[output_gallery, keywords], outputs=output)
+    extract_button.click(extract_and_search, inputs=[output_gallery, keywords], outputs=[raw_output, highlighted_output])
 
 if __name__ == "__main__":
     demo.queue(max_size=10).launch(share=True)
