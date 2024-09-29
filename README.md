@@ -1,3 +1,9 @@
+---
+title: ColPali
+app_file: app.py
+sdk: gradio
+sdk_version: 4.41.0
+---
 # RAG-based PDF Search and Keyword Extraction using Qwen2VL
 
 This repository contains an implementation of a **RAG (Retrieval-Augmented Generation)** based PDF search system using **Copali's implementation** of the Byaldi library and **Qwen2VL** for creating the RAG pipeline. Additionally, the repository includes a Gradio app that allows users to extract text from images and highlight searched keywords using **Qwen2VL**.
