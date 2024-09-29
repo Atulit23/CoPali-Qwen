@@ -1,4 +1,4 @@
-colpali-engine==0.2.0
+byaldi
 pdf2image
 GPUtil
 accelerate==0.30.1

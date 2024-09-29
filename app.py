@@ -1,7 +1,7 @@
 import gradio as gr
 import torch
 from PIL import Image
-from transformers import Qwen2VLForConditionalGeneration, AutoTokenizer, AutoProcessor
+from transformers import Qwen2VLForConditionalGeneration, AutoProcessor
 from qwen_vl_utils import process_vision_info
 import re
 
@@ -18,8 +18,8 @@ def model_inference(images):
 
     images = [{"type": "image", "image": Image.open(image[0])} for image in images]
     
-    messages = [{"role": "user", "content": images}]
-
+    messages = [{"role": "user", "content": "Please extract only the text from the following image."}, {"role": "user", "content": images}]
+    
     text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
     image_inputs, video_inputs = process_vision_info(messages)
     inputs = processor(
@@ -73,7 +73,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
     extract_button = gr.Button("Extract Text and Search", variant="primary")
     
     with gr.Row():
-        raw_output = gr.Textbox(label="Interpreted Text")
+        raw_output = gr.Textbox(label="Extracted Text")
         highlighted_output = gr.Markdown(label="Highlighted Search Results")
 
     extract_button.click(extract_and_search, inputs=[output_gallery, keywords], outputs=[raw_output, highlighted_output])
